@@ -19,28 +19,27 @@ const webPort = "80"
 var counts int64
 
 type Config struct {
-	DB     *sql.DB
+	DB *sql.DB
 	Models data.Models
 }
 
 func main() {
-	log.Printf("Starting authentication service on port %s\n", webPort)
-	//TODO connect to DB
+	log.Println("Starting authentication service")
+
+	// connect to DB
 	conn := connectToDB()
 	if conn == nil {
-		log.Panic("Could not connect to DB")
+		log.Panic("Can't connect to Postgres!")
 	}
 
 	// set up config
-
 	app := Config{
-		DB:     conn,
+		DB: conn,
 		Models: data.New(conn),
 	}
 
-	// start the server
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", webPort),
+		Addr: fmt.Sprintf(":%s", webPort),
 		Handler: app.routes(),
 	}
 
@@ -48,7 +47,6 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-
 }
 
 func openDB(dsn string) (*sql.DB, error) {
@@ -57,7 +55,6 @@ func openDB(dsn string) (*sql.DB, error) {
 		return nil, err
 	}
 
-	// check that the connection is actually working
 	err = db.Ping()
 	if err != nil {
 		return nil, err
@@ -72,18 +69,19 @@ func connectToDB() *sql.DB {
 	for {
 		connection, err := openDB(dsn)
 		if err != nil {
-			log.Println("Cannot connect to DB, retrying...")
+			log.Println("Postgres not yet ready ...")
 			counts++
 		} else {
-			log.Println("Connected to DB")
+			log.Println("Connected to Postgres!")
 			return connection
 		}
+
 		if counts > 10 {
-			log.Println("Could not connect to DB after 10 tries, exiting...")
 			log.Println(err)
 			return nil
 		}
-		log.Println("Waiting 2 seconds before retrying...")
+
+		log.Println("Backing off for two seconds....")
 		time.Sleep(2 * time.Second)
 		continue
 	}
