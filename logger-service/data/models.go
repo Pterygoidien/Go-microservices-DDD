@@ -26,7 +26,7 @@ type Models struct {
 }
 
 type LogEntry struct {
-	ID        string    `bson:"_id, omitempty" json:"id,omitempty"`
+	ID        string    `bson:"_id,omitempty" json:"id,omitempty"`
 	Name      string    `bson:"name" json:"name"`
 	Data      string    `bson:"data" json:"data"`
 	CreatedAt time.Time `bson:"created_at" json:"created_at"`
@@ -37,15 +37,16 @@ func (l *LogEntry) Insert(entry LogEntry) error {
 	collection := client.Database("logs").Collection("logs")
 
 	_, err := collection.InsertOne(context.TODO(), LogEntry{
-		Name:      entry.Name,
-		Data:      entry.Data,
+		Name: entry.Name,
+		Data: entry.Data,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	})
 	if err != nil {
-		log.Println("Error inserting log entry:", err)
+		log.Println("Error inserting into logs:", err)
 		return err
 	}
+
 	return nil
 }
 
@@ -143,23 +144,4 @@ func (l *LogEntry) Update() (*mongo.UpdateResult, error) {
 	}
 
 	return result, nil
-}
-
-func (l *LogEntry) Delete(id string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
-
-	collection := client.Database("logs").Collection("logs")
-
-	docID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		log.Println("Error converting id to object id:", err)
-		return err
-	}
-	_, err = collection.DeleteOne(ctx, bson.M{"_id": docID})
-	if err != nil {
-		log.Println("Error deleting log entry:", err)
-		return err
-	}
-	return nil
 }

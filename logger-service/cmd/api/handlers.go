@@ -15,7 +15,7 @@ func (app *Config) WriteLog(w http.ResponseWriter, r *http.Request) {
 	var requestPayload JSONPayload
 	_ = app.readJSON(w, r, &requestPayload)
 
-	//insert data
+	// insert data
 	event := data.LogEntry{
 		Name: requestPayload.Name,
 		Data: requestPayload.Data,
@@ -23,13 +23,14 @@ func (app *Config) WriteLog(w http.ResponseWriter, r *http.Request) {
 
 	err := app.Models.LogEntry.Insert(event)
 	if err != nil {
-		app.errorJSON(w, err, http.StatusBadRequest)
+		app.errorJSON(w, err)
 		return
 	}
-	resp := jsonResponse{
-		Error:   false,
-		Message: "Logged event",
-	}
-	app.writeJSON(w, http.StatusAccepted, resp)
 
+	resp := jsonResponse{
+		Error: false,
+		Message: "logged",
+	}
+
+	app.writeJSON(w, http.StatusAccepted, resp)
 }
