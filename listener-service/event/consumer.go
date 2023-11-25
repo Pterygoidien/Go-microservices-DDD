@@ -10,9 +10,8 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-// Consumer is a struct that holds the connection to RabbitMQ
 type Consumer struct {
-	conn      *amqp.Connection
+	conn *amqp.Connection
 	queueName string
 }
 
@@ -34,6 +33,7 @@ func (consumer *Consumer) setup() error {
 	if err != nil {
 		return err
 	}
+
 	return declareExchange(channel)
 }
 
@@ -47,7 +47,6 @@ func (consumer *Consumer) Listen(topics []string) error {
 	if err != nil {
 		return err
 	}
-
 	defer ch.Close()
 
 	q, err := declareRandomQueue(ch)
@@ -55,14 +54,15 @@ func (consumer *Consumer) Listen(topics []string) error {
 		return err
 	}
 
-	for _, topic := range topics {
+	for _, s := range topics {
 		ch.QueueBind(
-			q.Name,       // queue name
-			topic,        // routing key
-			"logs_topic", // exchange
+			q.Name,
+			s,
+			"logs_topic",
 			false,
 			nil,
 		)
+
 		if err != nil {
 			return err
 		}
@@ -78,7 +78,7 @@ func (consumer *Consumer) Listen(topics []string) error {
 		for d := range messages {
 			var payload Payload
 			_ = json.Unmarshal(d.Body, &payload)
-			log.Printf("Received a message: %s", payload.Name)
+
 			go handlePayload(payload)
 		}
 	}()
@@ -87,21 +87,22 @@ func (consumer *Consumer) Listen(topics []string) error {
 	<-forever
 
 	return nil
-
 }
 
 func handlePayload(payload Payload) {
-	fmt.Printf("Handling payload: %s\n", payload.Name)
 	switch payload.Name {
 	case "log", "event":
 		// log whatever we get
 		err := logEvent(payload)
 		if err != nil {
-			log.Printf("Error logging event: %s", err)
+			log.Println(err)
 		}
+
 	case "auth":
 		// authenticate
-		// you can have as many cases as you want, as log as you write the logic
+
+	// you can have as many cases as you want, as long as you write the logic
+
 	default:
 		err := logEvent(payload)
 		if err != nil {
@@ -133,6 +134,6 @@ func logEvent(entry Payload) error {
 	if response.StatusCode != http.StatusAccepted {
 		return err
 	}
-
+	
 	return nil
 }
