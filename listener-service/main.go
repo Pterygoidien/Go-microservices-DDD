@@ -43,7 +43,7 @@ func connect() (*amqp.Connection, error) {
 	var connection *amqp.Connection
 
 	for {
-		c, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+		c, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
 		if err != nil {
 			counts++
 			log.Printf("Failed to connect to RabbitMQ: %s", err)
@@ -56,7 +56,7 @@ func connect() (*amqp.Connection, error) {
 
 		if counts > 8 {
 			fmt.Println("Failed to connect to RabbitMQ after 8 attempts")
-			fmt.Println("error: %s", err)
+			fmt.Printf("error: %s\n", err)
 			return nil, err
 		}
 		backOff = time.Duration(math.Pow(float64(counts), 2)) * time.Second
