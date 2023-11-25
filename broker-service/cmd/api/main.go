@@ -1,3 +1,5 @@
+// Package main provides the entry point for the broker service API.
+// It connects to RabbitMQ, initializes the app, and starts the HTTP server.
 package main
 
 import (
@@ -13,12 +15,12 @@ import (
 
 const webPort = "80"
 
+// Config holds the configuration for the broker service.
 type Config struct {
 	RabbitMQ *amqp.Connection
 }
 
 func main() {
-
 	// try to connect to rabbitmq
 	rabbitConn, err := connect()
 	if err != nil {
@@ -46,9 +48,10 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-
 }
 
+// connect attempts to connect to RabbitMQ and returns the connection.
+// It uses an exponential backoff strategy for retrying the connection.
 func connect() (*amqp.Connection, error) {
 	var counts int64
 	var backOff = 1 * time.Second
@@ -59,7 +62,6 @@ func connect() (*amqp.Connection, error) {
 		if err != nil {
 			counts++
 			log.Printf("Failed to connect to RabbitMQ: %s", err)
-
 		} else {
 			log.Println("Connected to RabbitMQ")
 			connection = c
@@ -79,5 +81,4 @@ func connect() (*amqp.Connection, error) {
 	}
 
 	return connection, nil
-
 }
