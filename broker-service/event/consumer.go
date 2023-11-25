@@ -16,6 +16,8 @@ type Consumer struct {
 	queueName string
 }
 
+// NewConsumer creates a new Consumer instance with the given RabbitMQ connection.
+// It returns the Consumer instance and an error if any.
 func NewConsumer(conn *amqp.Connection) (Consumer, error) {
 	consumer := Consumer{
 		conn: conn,
@@ -29,6 +31,8 @@ func NewConsumer(conn *amqp.Connection) (Consumer, error) {
 	return consumer, nil
 }
 
+// setup initializes the RabbitMQ channel and declares the exchange.
+// It returns an error if any.
 func (consumer *Consumer) setup() error {
 	channel, err := consumer.conn.Channel()
 	if err != nil {
@@ -37,11 +41,15 @@ func (consumer *Consumer) setup() error {
 	return declareExchange(channel)
 }
 
+// Payload represents the data structure of the message payload.
 type Payload struct {
 	Name string `json:"name"`
 	Data string `json:"data"`
 }
 
+// Listen starts listening for messages on the specified topics.
+// It binds the queue to the topics and handles the received messages.
+// It returns an error if any.
 func (consumer *Consumer) Listen(topics []string) error {
 	ch, err := consumer.conn.Channel()
 	if err != nil {
@@ -87,9 +95,10 @@ func (consumer *Consumer) Listen(topics []string) error {
 	<-forever
 
 	return nil
-
 }
 
+// handlePayload handles the received payload based on its name.
+// It performs different actions based on the payload name.
 func handlePayload(payload Payload) {
 	fmt.Printf("Handling payload: %s\n", payload.Name)
 	switch payload.Name {
@@ -101,7 +110,7 @@ func handlePayload(payload Payload) {
 		}
 	case "auth":
 		// authenticate
-		// you can have as many cases as you want, as log as you write the logic
+		// you can have as many cases as you want, as long as you write the logic
 	default:
 		err := logEvent(payload)
 		if err != nil {
@@ -110,6 +119,8 @@ func handlePayload(payload Payload) {
 	}
 }
 
+// logEvent logs the event by sending a POST request to the logger service.
+// It returns an error if any.
 func logEvent(entry Payload) error {
 	jsonData, _ := json.MarshalIndent(entry, "", "\t")
 
