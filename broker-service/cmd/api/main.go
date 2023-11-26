@@ -13,7 +13,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-const webPort = "80"
+const webPort = "8080"
 
 // Config holds the configuration for the broker service.
 type Config struct {

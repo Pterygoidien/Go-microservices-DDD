@@ -1,10 +1,38 @@
 version: "3"
 
 services:
-  broker-service:
-    image: pterygoidien/broker-service:1.0.1
+  caddy:
+    image: pterygoidien/micro-caddy:1.0.0
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+
+  front-end:
+    image: pterygoidien/frontend-service:1.0.7
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    environment:
+      BROKER_URL: "http://backend"
+
+  broker-service:
+    image: pterygoidien/broker-service:1.0.4
     deploy:
       mode: replicated
       replicas: 1
@@ -39,7 +67,7 @@ services:
       DSN: "host=postgres port=5432 user=postgres password=password dbname=users sslmode=disable timezone=UTC connect_timeout=5"
 
   logger-service:
-    image: pterygoidien/logger-service:1.0.0
+    image: pterygoidien/logger-service:1.0.2
     deploy:
       mode: replicated
       replicas: 1
@@ -96,10 +124,9 @@ services:
       - ./db-data/mongo/:/data/db
 
   postgres:
-    image: "postgres:14.0"
+    image: "postgres:14.2"
     ports:
       - "5432:5432"
-    restart: always
     deploy:
       mode: replicated
       replicas: 1
@@ -109,3 +136,8 @@ services:
       POSTGRES_DB: users
     volumes:
       - ./db-data/postgres/:/var/lib/postgresql/data/
+
+volumes:
+  caddy_data:
+    external: true
+  caddy_config:
