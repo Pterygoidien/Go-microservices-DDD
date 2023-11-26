@@ -56,8 +56,9 @@ func main() {
 		log.Panic(err)
 	}
 
-	// start rpc server
+	// start RPC servers
 	go app.rpcListen()
+	go app.gRPCListen()
 
 	// start web server
 	log.Println("Starting service on port", webPort)
